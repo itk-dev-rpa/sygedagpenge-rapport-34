@@ -4,7 +4,6 @@ from csv import DictReader
 import time
 from dataclasses import dataclass
 from datetime import date, datetime
-from pathlib import Path
 
 import uiautomation
 from selenium import webdriver
