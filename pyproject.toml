@@ -21,7 +21,8 @@ dependencies = [
     "selenium == 4.22.0",
     "uiautomation == 2.0.18",
     "requests == 2.32.3",
-    "itk-dev-shared-components == 2.*"
+    "itk-dev-shared-components == 2.*",
+    "openpyxl == 3.1.2"
 ]
 
 [project.optional-dependencies]
