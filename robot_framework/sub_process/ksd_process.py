@@ -1,3 +1,4 @@
+"""This module handles interactions with KSDP (Kommunernes Sygedagpengesystem)."""
 
 import os
 from csv import DictReader
@@ -19,6 +20,7 @@ from robot_framework import config
 
 @dataclass(init=False)
 class Case:
+    """A dataclass representing a single case."""
     oprettelsesdato: date
     sagsnummer: str
     cpr_nummer: str
@@ -194,6 +196,7 @@ def _close_all_tabs(browser: webdriver.Chrome):
 
 
 def _convert_date(date_string: str, format: str) -> date | None:
+    """Convert a date string from a given format if possible."""
     try:
         return datetime.strptime(date_string, format).date()
     except ValueError:
