@@ -116,6 +116,8 @@ def create_report(browser: webdriver.Chrome, year_from: int, week_from: int, yea
     name, ext = os.path.splitext(os.path.basename(file_path))
     file_util.wait_for_download(folder, name, ext)
 
+    _close_all_tabs(browser)
+
 
 def read_csv_file(file_path: str) -> list[Case]:
     """Read the rapport 34 csv file, filter relevant cases and
@@ -213,23 +215,3 @@ def _wait_for_loading(browser: webdriver.Chrome):
     WebDriverWait(browser, 10).until(lambda b: b.find_element(By.TAG_NAME, "body").get_attribute("aria-busy"))  # Wait for loading
     WebDriverWait(browser, 10).until(lambda b: b.find_element(By.TAG_NAME, "body").get_attribute("aria-busy") is None)  # Wait for loading to disappear
     time.sleep(1)  # A little extra wait for the data to load
-
-
-if __name__ == '__main__':
-    conn_string = os.getenv("OpenOrchestratorConnString")
-    crypto_key = os.getenv("OpenOrchestratorKey")
-    oc = OrchestratorConnection("Eflyt Test", conn_string, crypto_key, "")
-
-    browser = login(oc)
-
-    file_path = r"C:\Users\az68933\Desktop\temp\Rapport 34\hejmeddig.csv"
-    create_report(browser, 2024, 15, 2024, 17,  file_path)
-    cases = read_csv_file(file_path)[1:2]
-    os.remove(file_path)
-
-    _close_all_tabs(browser)
-
-    for c in cases:
-        get_case_info(browser, c)
-
-    print("Hello")
