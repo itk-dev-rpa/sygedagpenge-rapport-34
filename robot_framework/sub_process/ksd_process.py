@@ -32,8 +32,8 @@ class Case:
     delvis_genoptaget_arbejde_dato: date
     delvist_uarbejdsdygtig_dato: date
     delvist_uarbejdsdygtig: str
-    årsag: str
-    årsag_bemærkning: str
+    fraværsårsag: str
+    fraværsårsag_bemærkning: str
     telefonnummer: str
 
 
@@ -160,28 +160,27 @@ def get_case_info(browser: webdriver.Chrome, _case: Case) -> None:
     browser.find_element(By.ID, "__button0").click()
     WebDriverWait(browser, 10).until(lambda b: b.find_element(By.ID, "__table0-rows-row0-col6").text == _case.sagsnummer)  # Wait for case number to appear
     browser.find_element(By.ID, "__table0-rows-row0-col0").click()
+    _wait_for_loading(browser)
 
     # Get phone number on first page
-    _case.telefonnummer = browser.find_element(By.CSS_SELECTOR, "input[id$=--TelefonnummerTF]").text
+    _case.telefonnummer = browser.find_element(By.CSS_SELECTOR, "input[id$=--TelefonnummerTF]").get_attribute("value")
 
     # Change page
     browser.find_element(By.CSS_SELECTOR, "a[id$=--navbar-2]").click()
-    WebDriverWait(browser, 10).until(lambda b: b.find_element(By.TAG_NAME, "body").get_attribute("aria-busy"))  # Wait for loading
-    WebDriverWait(browser, 10).until(lambda b: b.find_element(By.TAG_NAME, "body").get_attribute("aria-busy") is None)  # Wait for loading to disappear
-    time.sleep(0.5)  # A little extra wait for the data to load
+    _wait_for_loading(browser)
 
     # Get info
-    _case.årsag = browser.find_element(By.CSS_SELECTOR, "input[id$=--DDBFravaersAarsag-input]").get_attribute("value")
-    _case.årsag_bemærkning = browser.find_element(By.CSS_SELECTOR, "textarea[id$=--TFFravaersAarsagBem]").get_attribute("value")
+    _case.fraværsårsag = browser.find_element(By.CSS_SELECTOR, "input[id$=--DDBFravaersAarsag-input]").get_attribute("value")
+    _case.fraværsårsag_bemærkning = browser.find_element(By.CSS_SELECTOR, "textarea[id$=--TFFravaersAarsagBem]").get_attribute("value")
 
     delvist_uarbejdsdygtig_dato = browser.find_element(By.CSS_SELECTOR, "input[id$=--DPDelvisUarbejdsdygtigStartdato-col0-row0-input]").get_attribute("value")
     _case.delvist_uarbejdsdygtig_dato = _convert_date(delvist_uarbejdsdygtig_dato, "%d%m%Y")
     _case.delvist_uarbejdsdygtig = browser.find_element(By.CSS_SELECTOR, "input[id$=--DPDelvisUarbejdsdygtigAndel-col1-row0-input]").get_attribute("value")
 
-    close_all_tabs(browser)
+    _close_all_tabs(browser)
 
 
-def close_all_tabs(browser: webdriver.Chrome):
+def _close_all_tabs(browser: webdriver.Chrome):
     """Close all open tabs in KSDP.
     Note the first tab can't be closed.
 
@@ -202,6 +201,18 @@ def _convert_date(date_string: str, format: str) -> date | None:
         return None
 
 
+def _wait_for_loading(browser: webdriver.Chrome):
+    """Wait for KSDP to load.
+    Detect the loading attribute on the html body.
+
+    Args:
+        browser: A browser logged in to KSDP.
+    """
+    WebDriverWait(browser, 10).until(lambda b: b.find_element(By.TAG_NAME, "body").get_attribute("aria-busy"))  # Wait for loading
+    WebDriverWait(browser, 10).until(lambda b: b.find_element(By.TAG_NAME, "body").get_attribute("aria-busy") is None)  # Wait for loading to disappear
+    time.sleep(1)  # A little extra wait for the data to load
+
+
 if __name__ == '__main__':
     conn_string = os.getenv("OpenOrchestratorConnString")
     crypto_key = os.getenv("OpenOrchestratorKey")
@@ -211,7 +222,10 @@ if __name__ == '__main__':
 
     file_path = r"C:\Users\az68933\Desktop\temp\Rapport 34\hejmeddig.csv"
     create_report(browser, 2024, 15, 2024, 17,  file_path)
-    cases = read_csv_file(file_path)[:5]
+    cases = read_csv_file(file_path)[1:2]
+    os.remove(file_path)
+
+    _close_all_tabs(browser)
 
     for c in cases:
         get_case_info(browser, c)
