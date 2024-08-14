@@ -7,6 +7,7 @@ from datetime import datetime
 from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConnection
 from itk_dev_shared_components.smtp import smtp_util
 from itk_dev_shared_components.smtp.smtp_util import EmailAttachment
+from itk_dev_shared_components.misc import cvr_lookup
 
 from robot_framework import config
 from robot_framework.sub_process import ksd_process, excel_process
@@ -15,6 +16,7 @@ from robot_framework.sub_process import ksd_process, excel_process
 def process(orchestrator_connection: OrchestratorConnection) -> None:
     """Do the primary process of the robot."""
     orchestrator_connection.log_trace("Running process.")
+    cvr_creds = orchestrator_connection.get_credential(config.CVR_CREDS)
 
     browser = ksd_process.login(orchestrator_connection)
 
@@ -30,8 +32,16 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 
     orchestrator_connection.log_info(f"Searching info on {len(cases)} cases.")
 
+    # Get company type on each case
     for c in cases:
-        # TODO cvr lookup
+        c.virksomhedsform = cvr_lookup.cvr_lookup(c.cvr_nummer, cvr_creds.username, cvr_creds.password).company_type
+
+    # Filter away cases with the wrong company type
+    # TODO Check if correct
+    cases = [c for c in cases if c.virksomhedsform == "Enkeltmandsvirksomhed"]
+
+    # Get info from ksd
+    for c in cases:
         ksd_process.get_case_info(browser, c)
 
     excel_file = excel_process.write_excel(cases)

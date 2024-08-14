@@ -14,3 +14,4 @@ SCREENSHOT_SENDER = "robot@friend.dk"
 # Constant/Credential names
 ERROR_EMAIL = "Error Email"
 KSDP_CREDS = "Sygedagpenge"
+CVR_CREDS = "CVR Webservice"
