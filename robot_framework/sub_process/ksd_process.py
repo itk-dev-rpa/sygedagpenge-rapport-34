@@ -107,9 +107,7 @@ def create_report(browser: webdriver.Chrome, year_from: int, week_from: int, yea
 
     # Handle save dialog
     # TODO shared component
-    file_dialog = uiautomation.WindowControl(Name="Gem som", searchDepth=2)
-    file_dialog.PaneControl(AutomationId="BackgroundClear", searchDepth=4).EditControl(AutomationId="1001").GetValuePattern().SetValue(file_path)
-    file_dialog.ButtonControl(Name="Gem", searchDepth=1).GetInvokePattern().Invoke()
+    file_util
 
     # Wait for download
     folder = os.path.dirname(file_path)
@@ -199,10 +197,10 @@ def _close_all_tabs(browser: webdriver.Chrome):
 
 def _convert_date(date_string: str, format: str) -> date | None:
     """Convert a date string from a given format if possible."""
-    try:
+    if date_string:
         return datetime.strptime(date_string, format).date()
-    except ValueError:
-        return None
+
+    return None
 
 
 def _wait_for_loading(browser: webdriver.Chrome):
