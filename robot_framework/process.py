@@ -22,7 +22,7 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 
     # Create report
     folder = os.getcwd()
-    report_path = os.path.join(folder, f"{uuid.uuid4}.csv")
+    report_path = os.path.join(folder, f"{uuid.uuid4()}.csv")
 
     year, week_number, _ = datetime.today().isocalendar()
 
@@ -50,3 +50,10 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
                          f"Her er den berigede rapport 34 for uge {week_number}.\n\nVenlig hilsen\nRobotten",
                          smtp_server=config.SMTP_SERVER, smtp_port=config.SMTP_PORT,
                          attachments=[EmailAttachment(excel_file, "Rapport 34.xlsx")])
+
+
+if __name__ == '__main__':
+    conn_string = os.getenv("OpenOrchestratorConnString")
+    crypto_key = os.getenv("OpenOrchestratorKey")
+    oc = OrchestratorConnection("Rapport 34 test", conn_string, crypto_key, "")
+    process(oc)

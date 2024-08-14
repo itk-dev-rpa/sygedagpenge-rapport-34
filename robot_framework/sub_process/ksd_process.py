@@ -104,10 +104,7 @@ def create_report(browser: webdriver.Chrome, year_from: int, week_from: int, yea
 
     # Download
     browser.find_element(By.CSS_SELECTOR, "button[id$=--oReportsHENTCSVSOM]").click()
-
-    # Handle save dialog
-    # TODO shared component
-    file_util
+    file_util.handle_save_dialog(file_path)
 
     # Wait for download
     folder = os.path.dirname(file_path)
