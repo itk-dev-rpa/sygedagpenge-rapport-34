@@ -34,7 +34,7 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
 
     # Get company type on each case
     for c in cases:
-        c.virksomhedsform = cvr_lookup.cvr_lookup(c.cvr_nummer, cvr_creds.username, cvr_creds.password).company_type
+        c.company_type = cvr_lookup.cvr_lookup(c.cvr_number, cvr_creds.username, cvr_creds.password).company_type
 
     # Get info from ksd
     for c in cases:

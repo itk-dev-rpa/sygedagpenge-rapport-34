@@ -6,7 +6,6 @@ import time
 from dataclasses import dataclass
 from datetime import date, datetime
 
-import uiautomation
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
@@ -21,21 +20,21 @@ from robot_framework import config
 @dataclass(init=False)
 class Case:
     """A dataclass representing a single case."""
-    oprettelsesdato: date
-    sagsnummer: str
-    cpr_nummer: str
-    navn: str
-    cvr_nummer: str
-    virksomhed: str
-    virksomhedsform: str
-    første_fraværsdag: date
-    sidste_fraværsdag: date
-    delvis_genoptaget_arbejde_dato: date
-    delvist_uarbejdsdygtig_dato: date
-    delvist_uarbejdsdygtig: str
-    fraværsårsag: str
-    fraværsårsag_bemærkning: str
-    telefonnummer: str
+    creation_date: date
+    case_number: str
+    cpr_number: str
+    name: str
+    cvr_number: str
+    company_name: str
+    company_type: str
+    first_absence_date: date
+    last_absence_date: date
+    partial_work_resumption_date: date
+    partial_incapacity_date: date
+    partial_incapacity_status: str
+    absence_reason: str
+    absence_reason_note: str
+    phone_number: str
 
 
 def login(orchestrator_connection: OrchestratorConnection) -> webdriver.Chrome:
@@ -131,15 +130,15 @@ def read_csv_file(file_path: str) -> list[Case]:
         for line in reader:
             if line['Sygemeldt-Type'] == "Selvstændig" and "Afsluttet" not in line['Sagsstatus'] and "Lukket" not in line['Sagsstatus']:
                 c = Case()
-                c.oprettelsesdato = _convert_date(line['Opret-dato'], "%Y-%m-%d")
-                c.sagsnummer = line['Sagsnummer']
-                c.cpr_nummer = line['CPR-nummer']
-                c.navn = line['Borger']
-                c.cvr_nummer = line['CVR-nummer']
-                c.virksomhed = line['Virksomhed']
-                c.første_fraværsdag = _convert_date(line['Første fraværsdag'], "%Y-%m-%d")
-                c.sidste_fraværsdag = _convert_date(line['Sidste fraværsdag'], "%Y-%m-%d")
-                c.delvis_genoptaget_arbejde_dato = _convert_date(line['Delvis genoptaget arbejde'], "%Y-%m-%d")
+                c.creation_date = _convert_date(line['Opret-dato'], "%Y-%m-%d")
+                c.case_number = line['Sagsnummer']
+                c.cpr_number = line['CPR-nummer']
+                c.name = line['Borger']
+                c.cvr_number = line['CVR-nummer']
+                c.company_name = line['Virksomhed']
+                c.first_absence_date = _convert_date(line['Første fraværsdag'], "%Y-%m-%d")
+                c.last_absence_date = _convert_date(line['Sidste fraværsdag'], "%Y-%m-%d")
+                c.partial_work_resumption_date = _convert_date(line['Delvis genoptaget arbejde'], "%Y-%m-%d")
                 cases.append(c)
 
     return cases
@@ -154,26 +153,26 @@ def get_case_info(browser: webdriver.Chrome, _case: Case) -> None:
     """
     # Search and open case
     browser.find_element(By.ID, "__jsview0--TFSearchResultCaseNo").clear()
-    browser.find_element(By.ID, "__jsview0--TFSearchResultCaseNo").send_keys(_case.sagsnummer)
+    browser.find_element(By.ID, "__jsview0--TFSearchResultCaseNo").send_keys(_case.case_number)
     browser.find_element(By.ID, "__button0").click()
-    WebDriverWait(browser, 10).until(lambda b: b.find_element(By.ID, "__table0-rows-row0-col6").text == _case.sagsnummer)  # Wait for case number to appear
+    WebDriverWait(browser, 10).until(lambda b: b.find_element(By.ID, "__table0-rows-row0-col6").text == _case.case_number)  # Wait for case number to appear
     browser.find_element(By.ID, "__table0-rows-row0-col0").click()
     _wait_for_loading(browser)
 
     # Get phone number on first page
-    _case.telefonnummer = browser.find_element(By.CSS_SELECTOR, "input[id$=--TelefonnummerTF]").get_attribute("value")
+    _case.phone_number = browser.find_element(By.CSS_SELECTOR, "input[id$=--TelefonnummerTF]").get_attribute("value")
 
     # Change page
     browser.find_element(By.CSS_SELECTOR, "a[id$=--navbar-2]").click()
     _wait_for_loading(browser)
 
     # Get info
-    _case.fraværsårsag = browser.find_element(By.CSS_SELECTOR, "input[id$=--DDBFravaersAarsag-input]").get_attribute("value")
-    _case.fraværsårsag_bemærkning = browser.find_element(By.CSS_SELECTOR, "textarea[id$=--TFFravaersAarsagBem]").get_attribute("value")
+    _case.absence_reason = browser.find_element(By.CSS_SELECTOR, "input[id$=--DDBFravaersAarsag-input]").get_attribute("value")
+    _case.absence_reason_note = browser.find_element(By.CSS_SELECTOR, "textarea[id$=--TFFravaersAarsagBem]").get_attribute("value")
 
     delvist_uarbejdsdygtig_dato = browser.find_element(By.CSS_SELECTOR, "input[id$=--DPDelvisUarbejdsdygtigStartdato-col0-row0-input]").get_attribute("value")
-    _case.delvist_uarbejdsdygtig_dato = _convert_date(delvist_uarbejdsdygtig_dato, "%d%m%Y")
-    _case.delvist_uarbejdsdygtig = browser.find_element(By.CSS_SELECTOR, "input[id$=--DPDelvisUarbejdsdygtigAndel-col1-row0-input]").get_attribute("value")
+    _case.partial_incapacity_date = _convert_date(delvist_uarbejdsdygtig_dato, "%d%m%Y")
+    _case.partial_incapacity_status = browser.find_element(By.CSS_SELECTOR, "input[id$=--DPDelvisUarbejdsdygtigAndel-col1-row0-input]").get_attribute("value")
 
     _close_all_tabs(browser)
 
@@ -192,10 +191,10 @@ def _close_all_tabs(browser: webdriver.Chrome):
         tab_close_buttons = browser.find_elements(By.CLASS_NAME, "kmdtabclose")
 
 
-def _convert_date(date_string: str, format: str) -> date | None:
+def _convert_date(date_string: str, date_string_format: str) -> date | None:
     """Convert a date string from a given format if possible."""
     if date_string:
-        return datetime.strptime(date_string, format).date()
+        return datetime.strptime(date_string, date_string_format).date()
 
     return None
 

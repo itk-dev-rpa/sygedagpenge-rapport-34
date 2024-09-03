@@ -41,21 +41,21 @@ def write_excel(case_list: tuple[Case]) -> BytesIO:
 
     for _case in case_list:
         row = [
-            _case.oprettelsesdato,
-            _case.sagsnummer,
-            _case.cpr_nummer,
-            _case.navn,
-            _case.cvr_nummer,
-            _case.virksomhed,
-            _case.virksomhedsform,
-            _case.første_fraværsdag,
-            _case.sidste_fraværsdag,
-            _case.delvis_genoptaget_arbejde_dato,
-            _case.delvist_uarbejdsdygtig_dato,
-            _case.delvist_uarbejdsdygtig,
-            _case.fraværsårsag,
-            _case.fraværsårsag_bemærkning,
-            _case.telefonnummer
+            _case.creation_date,
+            _case.case_number,
+            _case.cpr_number,
+            _case.name,
+            _case.cvr_number,
+            _case.company_name,
+            _case.company_type,
+            _case.first_absence_date,
+            _case.last_absence_date,
+            _case.partial_work_resumption_date,
+            _case.partial_incapacity_date,
+            _case.partial_incapacity_status,
+            _case.absence_reason,
+            _case.absence_reason_note,
+            _case.phone_number
         ]
         sheet.append(row)
 
