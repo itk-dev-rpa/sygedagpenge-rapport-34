@@ -45,7 +45,7 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
     smtp_util.send_email(receivers, "itk-rpa@mkb.aarhus.dk", f"Sygedagpenge Rapport 34 - uge {week_number}",
                          f"Her er den berigede rapport 34 for uge {week_number}.\n\nVenlig hilsen\nRobotten",
                          smtp_server=config.SMTP_SERVER, smtp_port=config.SMTP_PORT,
-                         attachments=[EmailAttachment(excel_file, "Rapport 34.xlsx")])
+                         attachments=[EmailAttachment(excel_file, f"Rapport 34 uge {week_number}.xlsx")])
 
 
 if __name__ == '__main__':
