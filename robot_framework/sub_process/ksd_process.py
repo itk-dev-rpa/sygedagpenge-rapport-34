@@ -17,8 +17,8 @@ from itk_dev_shared_components.misc import file_util
 from robot_framework import config
 
 
-# pylint: disable-next=too-many-instance-attributes
 @dataclass(init=False)
+# pylint: disable-next=too-many-instance-attributes
 class Case:
     """A dataclass representing a single case."""
     creation_date: date
