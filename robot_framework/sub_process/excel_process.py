@@ -1,3 +1,4 @@
+"""This moduel handles Excel files."""
 
 from io import BytesIO
 
