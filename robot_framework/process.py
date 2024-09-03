@@ -2,7 +2,7 @@
 
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConnection
 from itk_dev_shared_components.smtp import smtp_util
@@ -24,7 +24,7 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
     folder = os.getcwd()
     report_path = os.path.join(folder, f"{uuid.uuid4()}.csv")
 
-    year, week_number, _ = datetime.today().isocalendar()
+    year, week_number, _ = (datetime.today() - timedelta(weeks=1)).isocalendar()
 
     ksd_process.create_report(browser, year, week_number, year, week_number,  report_path)
     cases = ksd_process.read_csv_file(report_path)
@@ -35,10 +35,6 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
     # Get company type on each case
     for c in cases:
         c.virksomhedsform = cvr_lookup.cvr_lookup(c.cvr_nummer, cvr_creds.username, cvr_creds.password).company_type
-
-    # Filter away cases with the wrong company type
-    # TODO Check if correct
-    cases = [c for c in cases if c.virksomhedsform == "Enkeltmandsvirksomhed"]
 
     # Get info from ksd
     for c in cases:
