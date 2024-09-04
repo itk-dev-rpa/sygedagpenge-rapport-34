@@ -11,6 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import StaleElementReferenceException
 from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConnection
 from itk_dev_shared_components.misc import file_util
 
@@ -61,13 +62,29 @@ def login(orchestrator_connection: OrchestratorConnection) -> webdriver.Chrome:
     browser.find_element(By.CSS_SELECTOR, 'input[value=OK]').click()
 
     # Login
+    # The login screen is a little jumpy so sometimes it needs multiple tries.
     creds = orchestrator_connection.get_credential(config.KSDP_CREDS)
-    WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.NAME, "loginfmt")))
-    browser.find_element(By.NAME, "loginfmt").send_keys(creds.username)
+
+    for _ in range(3):
+        try:
+            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.NAME, "loginfmt")))
+            browser.find_element(By.NAME, "loginfmt").send_keys(creds.username)
+        except StaleElementReferenceException:
+            continue
+        break
+    else:
+        raise RuntimeError("Couldn't enter username.")
     browser.find_element(By.ID, "idSIButton9").click()
 
-    WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.NAME, "passwd")))
-    browser.find_element(By.NAME, "passwd").send_keys(creds.password)
+    for _ in range(3):
+        try:
+            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.NAME, "passwd")))
+            browser.find_element(By.NAME, "passwd").send_keys(creds.password)
+        except StaleElementReferenceException:
+            continue
+        break
+    else:
+        raise RuntimeError("Couldn't enter password.")
     browser.find_element(By.ID, "idSIButton9").click()
 
     # Wait for site to load
