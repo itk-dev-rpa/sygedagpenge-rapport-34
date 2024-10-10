@@ -57,9 +57,10 @@ def login() -> webdriver.Edge:
         # "download.directory_upgrade": True,
         # "safebrowsing.enabled": True
     })
+    edge_options.add_argument("--headless")
+    edge_options.add_argument("--window-position=-2400,-2400")
     browser = webdriver.Edge(options=edge_options)
     browser.implicitly_wait(2)
-    browser.maximize_window()
     browser.get("https://ksdp.dk/start")
 
     # Select city if necessary
