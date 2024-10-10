@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import NoSuchElementException
 from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConnection
 from itk_dev_shared_components.misc import file_util
 
@@ -39,8 +39,8 @@ class Case:
     phone_number: str
 
 
-def login(orchestrator_connection: OrchestratorConnection) -> webdriver.Chrome:
-    """Login to KSDP using Microsoft credentials and return the browser object.
+def login() -> webdriver.Edge:
+    """Login to KSDP using SSO and return the browser object.
 
     Args:
         orchestrator_connection: The connection to Orchestrator.
@@ -48,44 +48,27 @@ def login(orchestrator_connection: OrchestratorConnection) -> webdriver.Chrome:
     Returns:
         A browser logged in to KSDP.
     """
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--incognito")  # Needed to ignore SSO
-    chrome_options.add_argument("--disable-search-engine-choice-screen")
-    browser = webdriver.Chrome(options=chrome_options)
+    edge_options = webdriver.EdgeOptions()
+    edge_options.add_argument(f"user-data-dir={os.path.expanduser(r"~\AppData\Local\Microsoft\Edge\User Data\Default")}")
+    edge_options.add_argument("profile-directory=Default")
+    edge_options.add_experimental_option("prefs", {
+        "download.default_directory": os.getcwd(),
+        "download.prompt_for_download": False
+        # "download.directory_upgrade": True,
+        # "safebrowsing.enabled": True
+    })
+    browser = webdriver.Edge(options=edge_options)
     browser.implicitly_wait(2)
     browser.maximize_window()
     browser.get("https://ksdp.dk/start")
 
-    # Select city
-    select = Select(browser.find_element(By.ID, "SelectedAuthenticationUrl"))
-    select.select_by_visible_text("Aarhus Kommune")
-    browser.find_element(By.CSS_SELECTOR, 'input[value=OK]').click()
-
-    # Login
-    # The login screen is a little jumpy so sometimes it needs multiple tries.
-    creds = orchestrator_connection.get_credential(config.KSDP_CREDS)
-
-    for _ in range(3):
-        try:
-            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.NAME, "loginfmt")))
-            browser.find_element(By.NAME, "loginfmt").send_keys(creds.username)
-        except StaleElementReferenceException:
-            continue
-        break
-    else:
-        raise RuntimeError("Couldn't enter username.")
-    browser.find_element(By.ID, "idSIButton9").click()
-
-    for _ in range(3):
-        try:
-            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.NAME, "passwd")))
-            browser.find_element(By.NAME, "passwd").send_keys(creds.password)
-        except StaleElementReferenceException:
-            continue
-        break
-    else:
-        raise RuntimeError("Couldn't enter password.")
-    browser.find_element(By.ID, "idSIButton9").click()
+    # Select city if necessary
+    try:
+        select = Select(browser.find_element(By.ID, "SelectedAuthenticationUrl"))
+        select.select_by_visible_text("Aarhus Kommune")
+        browser.find_element(By.CSS_SELECTOR, 'input[value=OK]').click()
+    except NoSuchElementException:
+        pass
 
     # Wait for site to load
     WebDriverWait(browser, 60).until(EC.element_to_be_clickable((By.ID, "MainShell-logout")))
@@ -93,7 +76,7 @@ def login(orchestrator_connection: OrchestratorConnection) -> webdriver.Chrome:
     return browser
 
 
-def create_report(browser: webdriver.Chrome, year_from: int, week_from: int, year_to: int, week_to: int, file_path: str):
+def create_report(browser: webdriver.Chrome, year_from: int, week_from: int, year_to: int, week_to: int):
     """Generate a csv report 34 in KSDP.
 
     Args:
@@ -102,7 +85,6 @@ def create_report(browser: webdriver.Chrome, year_from: int, week_from: int, yea
         week_from: The week of the from date.
         year_to: The year of the to date.
         week_to: The week of the to date.
-        file_path: The path to save the csv report to.
     """
     browser.find_element(By.CSS_SELECTOR, "span[title=Funktioner]").click()
     browser.find_element(By.CSS_SELECTOR, "button[title=Rapporter]").click()
@@ -121,14 +103,12 @@ def create_report(browser: webdriver.Chrome, year_from: int, week_from: int, yea
 
     # Download
     browser.find_element(By.CSS_SELECTOR, "button[id$=--oReportsHENTCSVSOM]").click()
-    file_util.handle_save_dialog(file_path)
 
     # Wait for download
-    folder = os.path.dirname(file_path)
-    name, ext = os.path.splitext(os.path.basename(file_path))
-    file_util.wait_for_download(folder, name, ext)
+    file_path = file_util.wait_for_download(os.getcwd(), None, ".csv")
 
     _close_all_tabs(browser)
+    return file_path
 
 
 def read_csv_file(file_path: str) -> list[Case]:

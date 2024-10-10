@@ -1,21 +1,17 @@
 """This moduel handles Excel files."""
 
-from io import BytesIO
-
 from openpyxl import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
 from robot_framework.sub_process.ksd_process import Case
 
 
-def write_excel(case_list: tuple[Case]) -> BytesIO:
+def write_excel(case_list: tuple[Case], save_path: str):
     """Write the given case list to an Excel sheet.
 
     Args:
         case_list: The list of cases to write.
-
-    Returns:
-        An Excel file as a BytesIO object.
+        save_path: The path to save the file to.
     """
     wb = Workbook()
     sheet: Worksheet = wb.active
@@ -59,6 +55,4 @@ def write_excel(case_list: tuple[Case]) -> BytesIO:
         ]
         sheet.append(row)
 
-    file = BytesIO()
-    wb.save(file)
-    return file
+    wb.save(save_path)

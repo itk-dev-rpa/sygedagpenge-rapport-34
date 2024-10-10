@@ -21,7 +21,8 @@ dependencies = [
     "Pillow == 9.*",
     "selenium == 4.*",
     "requests == 2.*",
-    "openpyxl == 3.*"
+    "openpyxl == 3.*",
+    "python-dotenv"
 ]
 
 [project.optional-dependencies]
