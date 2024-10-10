@@ -1,6 +1,5 @@
-# Arguments
+# Sygedagpenge rapport 34 Attended
 
-The robot expects a list of email receivers as an argument.
-The list should be comma separated strings e.g.:
-
-hello@hello.dk,haha@haha.co.uk
+This robot is made to be run on a employee's pc.
+The employee needs to run `run.bat`, select a file path for the result file
+and then wait for the result file to open.
