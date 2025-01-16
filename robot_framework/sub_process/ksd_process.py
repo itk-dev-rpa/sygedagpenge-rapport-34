@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
@@ -36,7 +37,7 @@ class Case:
     phone_number: str
 
 
-def login() -> webdriver.Edge:
+def login() -> webdriver.Chrome:
     """Login to KSDP using SSO and return the browser object.
 
     Args:
@@ -45,18 +46,14 @@ def login() -> webdriver.Edge:
     Returns:
         A browser logged in to KSDP.
     """
-    edge_options = webdriver.EdgeOptions()
-    edge_options.add_argument(f"user-data-dir={os.path.expanduser(r"~\AppData\Local\Microsoft\Edge\User Data\Default")}")
-    edge_options.add_argument("profile-directory=Default")
-    edge_options.add_experimental_option("prefs", {
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option("prefs", {
         "download.default_directory": os.getcwd(),
         "download.prompt_for_download": False
-        # "download.directory_upgrade": True,
-        # "safebrowsing.enabled": True
     })
-    edge_options.add_argument("--headless")
-    edge_options.add_argument("--window-position=-2400,-2400")
-    browser = webdriver.Edge(options=edge_options)
+    options.add_argument("--window-position=-10_000,-10_000")
+    browser = webdriver.Chrome(options=options)
+    # browser.maximize_window()
     browser.implicitly_wait(2)
     browser.get("https://ksdp.dk/start")
 
@@ -65,6 +62,12 @@ def login() -> webdriver.Edge:
         select = Select(browser.find_element(By.ID, "SelectedAuthenticationUrl"))
         select.select_by_visible_text("Aarhus Kommune")
         browser.find_element(By.CSS_SELECTOR, 'input[value=OK]').click()
+    except NoSuchElementException:
+        pass
+
+    # Select role if necessary
+    try:
+        browser.find_element(By.ID, "Something").click()
     except NoSuchElementException:
         pass
 
@@ -148,11 +151,13 @@ def get_case_info(browser: webdriver.Chrome, _case: Case) -> None:
         _case: The case object to enrich.
     """
     # Search and open case
-    browser.find_element(By.ID, "__jsview0--TFSearchResultCaseNo").clear()
-    browser.find_element(By.ID, "__jsview0--TFSearchResultCaseNo").send_keys(_case.case_number)
-    browser.find_element(By.ID, "__button0").click()
-    WebDriverWait(browser, 10).until(lambda b: b.find_element(By.ID, "__table0-rows-row0-col6").text == _case.case_number)  # Wait for case number to appear
-    browser.find_element(By.ID, "__table0-rows-row0-col0").click()
+    search_field = browser.find_element(By.ID, "HeaderSearchTextField")
+    search_field.clear()
+    search_field.send_keys(_case.case_number)
+    search_field.send_keys(Keys.ENTER)
+
+    WebDriverWait(browser, 10).until(lambda b: b.find_element(By.CSS_SELECTOR, "td[id$=-rows-row0-col6]").text == _case.case_number)  # Wait for case number to appear
+    browser.find_element(By.CSS_SELECTOR, "td[id$=-rows-row0-col6]").click()
     _wait_for_loading(browser)
 
     # Get phone number on first page
