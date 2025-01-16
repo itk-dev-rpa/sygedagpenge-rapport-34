@@ -26,6 +26,8 @@ def process() -> None:
     cases = ksd_process.read_csv_file(report_path)
     os.remove(report_path)
 
+    print(f"Antal sager: {len(cases)}")
+
     # Get company type on each case
     print("Henter virksomhedstyper")
     for c in cases:
@@ -42,4 +44,12 @@ def process() -> None:
 
 if __name__ == '__main__':
     dotenv.load_dotenv()
-    process()
+    for i in range(3):
+        try:
+            process()
+            break
+        except Exception:
+            if i != 2:
+                print("Hov noget gik galt... Prøver igen.")
+            else:
+                print("Processen fejlede for mange gange... Kontakt udvikler")
