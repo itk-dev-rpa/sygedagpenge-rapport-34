@@ -35,6 +35,7 @@ class Case:
     absence_reason: str
     absence_reason_note: str
     phone_number: str
+    done: bool = False
 
 
 def login() -> webdriver.Chrome:
@@ -53,7 +54,7 @@ def login() -> webdriver.Chrome:
     })
     options.add_argument("--window-position=-10_000,-10_000")
     browser = webdriver.Chrome(options=options)
-    # browser.maximize_window()
+    browser.maximize_window()
     browser.implicitly_wait(2)
     browser.get("https://ksdp.dk/start")
 
@@ -174,6 +175,8 @@ def get_case_info(browser: webdriver.Chrome, _case: Case) -> None:
     delvist_uarbejdsdygtig_dato = browser.find_element(By.CSS_SELECTOR, "input[id$=--DPDelvisUarbejdsdygtigStartdato-col0-row0-input]").get_attribute("value")
     _case.partial_incapacity_date = _convert_date(delvist_uarbejdsdygtig_dato, "%d%m%Y")
     _case.partial_incapacity_status = browser.find_element(By.CSS_SELECTOR, "input[id$=--DPDelvisUarbejdsdygtigAndel-col1-row0-input]").get_attribute("value")
+
+    _case.done = True
 
     _close_all_tabs(browser)
 
