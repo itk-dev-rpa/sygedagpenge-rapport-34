@@ -72,7 +72,7 @@ def login() -> webdriver.Chrome:
         pass
 
     # Wait for site to load
-    WebDriverWait(browser, 60).until(EC.element_to_be_clickable((By.ID, "MainShell-logout")))
+    WebDriverWait(browser, 120).until(EC.element_to_be_clickable((By.ID, "MainShell-logout")))
 
     return browser
 
