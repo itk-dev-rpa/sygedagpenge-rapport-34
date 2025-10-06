@@ -8,6 +8,7 @@ from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConn
 from itk_dev_shared_components.smtp import smtp_util
 from itk_dev_shared_components.smtp.smtp_util import EmailAttachment
 from itk_dev_shared_components.misc import cvr_lookup
+import itk_dev_event_log
 
 from robot_framework import config
 from robot_framework.sub_process import ksd_process, excel_process
@@ -17,6 +18,9 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
     """Do the primary process of the robot."""
     orchestrator_connection.log_trace("Running process.")
     cvr_creds = orchestrator_connection.get_credential(config.CVR_CREDS)
+
+    event_log = orchestrator_connection.get_constant("Event Log")
+    itk_dev_event_log.setup_logging(event_log.value)
 
     browser = ksd_process.login(orchestrator_connection)
 
@@ -40,6 +44,7 @@ def process(orchestrator_connection: OrchestratorConnection) -> None:
     for c in cases:
         ksd_process.get_case_info(browser, c)
 
+    itk_dev_event_log.emit(orchestrator_connection.process_name, "Searched cases", len(cases))
     excel_file = excel_process.write_excel(cases)
     receivers = orchestrator_connection.process_arguments.split(",")
     smtp_util.send_email(receivers, "itk-rpa@mkb.aarhus.dk", f"Sygedagpenge Rapport 34 - uge {week_number}",
