@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 06-10-2025
 
 - Added eventlogging.
+- Added changelog.
 
 ## [1.0.0] - 24-09-2024
 
