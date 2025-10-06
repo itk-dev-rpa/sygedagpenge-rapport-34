@@ -93,6 +93,7 @@ def login(orchestrator_connection: OrchestratorConnection) -> webdriver.Chrome:
     return browser
 
 
+# pylint: disable-next=too-many-positional-arguments
 def create_report(browser: webdriver.Chrome, year_from: int, week_from: int, year_to: int, week_to: int, file_path: str):
     """Generate a csv report 34 in KSDP.
 
