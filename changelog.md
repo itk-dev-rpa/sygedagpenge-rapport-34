@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added eventlogging.
 - Added changelog.
+  
+### Changed
+
+- Bumped OpenOrchestrator to 2.*
 
 ## [1.0.0] - 24-09-2024
 
