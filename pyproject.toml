@@ -17,7 +17,7 @@ classifiers = [
 ]
 dependencies = [
     "itk-dev-shared-components == 2.*",
-    "OpenOrchestrator == 1.*",
+    "OpenOrchestrator == 2.*",
     "Pillow == 9.*",
     "selenium == 4.*",
     "requests == 2.*",
